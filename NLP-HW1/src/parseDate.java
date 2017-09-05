@@ -19,9 +19,9 @@ public class parseDate {
 	
 	static String fileToString(String fileName) throws Exception
 	{
-		List<String> lines = Files.readAllLines(new File(fileName).toPath(), Charset.defaultCharset());
+		List<String> lineList = Files.readAllLines(new File(fileName).toPath(), Charset.defaultCharset());
 		StringBuilder sb = new StringBuilder();
-		for(String line : lines)
+		for(String line : lineList)
 		{
 			sb.append(line);
 		}
@@ -35,7 +35,7 @@ public class parseDate {
 		String year = "([0-9]{4})";
 
 		String[] regexList = { month+"(\\s)"+date+"(,)*(\\s)*"+year, 
-				month+"(\\s)"+date, 
+				month+"(\\s)"+date+"(?!,)", 
 				month+"(\\s)"+ year, 
 				"(\\s)" + year + "(\\s)"};
 		
@@ -43,9 +43,9 @@ public class parseDate {
 		{
 			Pattern pattern = Pattern.compile(regex);
 			Matcher matcher = pattern.matcher(fileAsString);
-			
 			while(matcher.find())
-				System.out.println(matcher.group().toString().trim());
+				System.out.println(matcher.group());
+			System.out.println("**************************");
 		}
 		
 	}
