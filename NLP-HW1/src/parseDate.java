@@ -32,12 +32,12 @@ public class parseDate {
 	{
 		String date = "([0-2]\\d|3[0-1]|[1-9])";
 		String month = "(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)";
-		String year = "([0-9]{4})";
+		String year = "[12][0-9]{3}";
 
 		String[] regexList = { month+"(\\s)"+date+"(,)*(\\s)*"+year, 
-				month+"(\\s)"+date+"(?!,)", 
+				month+"(\\s)"+date+"(\\s)", 
 				month+"(\\s)"+ year, 
-				"(\\s)" + year + "(\\s)"};
+				year};
 		
 		for(String regex : regexList)
 		{
@@ -46,6 +46,7 @@ public class parseDate {
 			while(matcher.find())
 				System.out.println(matcher.group());
 			System.out.println("**************************");
+			matcher.reset();
 		}
 		
 	}
