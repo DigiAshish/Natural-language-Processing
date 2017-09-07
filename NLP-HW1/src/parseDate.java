@@ -8,7 +8,7 @@ public class parseDate {
 
 	public static void main(String[] args) throws Exception {
 
-		String fileName = "demo1.txt";
+		String fileName = "corpus.txt";
 		if(args.length > 0 )
 		{
 			fileName = args[0].toString();	
@@ -33,13 +33,15 @@ public class parseDate {
 		String date = "([0-2]\\d|3[0-1]|[1-9])";
 		String month = "(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)";
 		String year = "([12][0-9]{3})";
-		String onlyYear = "([12][0-9]{3})(?!.*\\1)";
+		String onlyYear1 = "([12][0-9]{3})(?!.*\\1)";
+		String onlyYear = "([12][0-9]{3})";
+		String beforeYear="(in|In|Since|since)";
 
 		String[] regexList = { month+"(\\s)"+date+"(,)*(\\s)*"+year, 
 				month+"(\\s)"+date+"(\\s)", 
-				month+"(\\s)"+ year, 
-				onlyYear};
-		
+				month+"(\\s)"+ year,
+				onlyYear+"(-)"+onlyYear};
+		;
 		for(String regex : regexList)
 		{
 			Pattern pattern = Pattern.compile(regex);
@@ -49,7 +51,13 @@ public class parseDate {
 			System.out.println("**************************");
 			matcher.reset();
 		}
-		
+		Pattern pattern = Pattern.compile((beforeYear +"(\\s)"+onlyYear));
+		Matcher matcher = pattern.matcher(fileAsString);
+		while(matcher.find())
+			System.out.println(matcher.group(3));
+		System.out.println("**************************");
+		matcher.reset();
+
 	}
 
 }
