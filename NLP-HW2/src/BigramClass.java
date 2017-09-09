@@ -184,6 +184,7 @@ public class BigramClass {
 	public void displayFreqNoSmoothing(String sentence) {
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tokenz = sentence.split(" ");
+		System.out.println("************************ Frequency No Smoothing***************************** ");
 		System.out.print(buildSpaceTab(" "));
 		for (int cntr = 0; cntr < tokenz.length; cntr++) {
 			System.out.print("\t" + tokenz[cntr]);
@@ -201,10 +202,10 @@ public class BigramClass {
 			}
 			System.out.println("\n");
 		}
-		System.out.println("***********************");
 	}
 
 	public void displayFreqAddOneSmoothing(String sentence) {
+		System.out.println("************************ Frequency Add One Smoothing***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tokens = sentence.split(" ");
 		System.out.print(buildSpaceTab(" "));
@@ -230,12 +231,12 @@ public class BigramClass {
 			}
 			System.out.println("\n");
 		}
-		System.out.println("***********************");
 	}
 
 	
 
 	void displayProb(String sentence) {
+		System.out.println("************************ Probability ***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tempToken = sentence.split(" ");
 		System.out.print(buildSpaceTab(" "));
@@ -258,7 +259,6 @@ public class BigramClass {
 			}
 			System.out.println("\n");
 		}
-		System.out.println("***********************");
 	}
 
 	public static String buildSpaceTab(String s) {
