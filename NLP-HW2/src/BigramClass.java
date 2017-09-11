@@ -12,29 +12,9 @@ public class BigramClass {
 	static String token2;
 	static int totalWords;
 
-	enum operation {
-		NO_SMOOTHING, ADD_ONE_SMOOTHING
-	};
-
 	public static void main(String[] args) throws FileNotFoundException {
-		
 		try {
-			reader = new BufferedReader(new FileReader(
-					"corpus.txt"));
-		} catch (Exception e) {
-			System.out.println("File not found");
-		}
-
-		get_tokens();
-		FreqCalculator();
-		calcSentence();
-	}
-
-	
-	static void get_tokens() {
-		try {
-			bigrams_Map = new HashMap<String, Integer>();
-			unigrams_Map = new HashMap<String, Integer>();
+			reader = new BufferedReader(new FileReader("corpus.txt"));
 			String singleLine = reader.readLine();
 
 			while (singleLine != null) {
@@ -43,12 +23,24 @@ public class BigramClass {
 			}
 			allLines = allLines.replaceAll("[^a-zA-Z0-9. ]", "");
 			allLines = allLines.replaceAll("\\s+", " ").toLowerCase();
+			tokenize(allLines);
+			
+		} catch (Exception e) {
+			System.out.println("File not found or Error parsing the file");
+		}
 
+		FreqCalculator();
+		calcSentence();
+	}
+
+	
+	static void tokenize(String allLines) {
+		try {
+			bigrams_Map = new HashMap<String, Integer>();
+			unigrams_Map = new HashMap<String, Integer>();
+			
 			StringTokenizer tokenizer = new StringTokenizer(allLines);
-
-			if (tokenizer.hasMoreTokens()) {
-				token1 = tokenizer.nextToken();
-			}
+			token1 = tokenizer.nextToken();
 
 			while (tokenizer.hasMoreTokens()) {
 				String token2 = tokenizer.nextToken();
@@ -68,11 +60,10 @@ public class BigramClass {
 				token1 = token2;
 			}
 
-
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			System.out.println("Error parsing file");
+			System.out.println("Error parsing the file");
 		}
 	}
 	
@@ -98,10 +89,9 @@ public class BigramClass {
 				"company ."
 				.toLowerCase();
 
-		compareSentence(sentence1, sentence2, operation.NO_SMOOTHING);
-		compareSentence(sentence1, sentence2, operation.ADD_ONE_SMOOTHING);
+		compareSentence(sentence1, sentence2, "NO_SMOOTHING");
+		compareSentence(sentence1, sentence2, "ADD_ONE_SMOOTHING");
 
-	
 		noSmoothingFreq(sentence1);
 		noSmoothingFreq(sentence2);
 		
@@ -114,22 +104,21 @@ public class BigramClass {
 	}
 	
 	static void compareSentence(String sentence1, String sentence2,
-			BigramClass.operation operation) {
-		System.out.println(operation);
-		double comp1 = doSmoothing(sentence1, operation.ordinal());
-		double comp2 = doSmoothing(sentence2, operation.ordinal());
-		String output = comp1 > comp2 ? "Sentence 1 is preferred"
-				: "Sentence 2 is preferred";
-		System.out.println(output);
-		System.out.println(" ");
+			String smoothingType) {
+		System.out.println(smoothingType);
+		double sent1Prob = doSmoothing(sentence1, 1,smoothingType);
+		double sent2Prob = doSmoothing(sentence2, 2,smoothingType);
+		System.out.println(sent1Prob > sent2Prob ? "Sentence 1 is preferred"
+				: "Sentence 2 is preferred");
+		System.out.println();
 	}
 	
 	
-	static double doSmoothing(String sentence, int smoothingType) {
+	static double doSmoothing(String sentence, int whichSentence, String smoothingType) {
 		String tempToken1 = "", tempToken2 = "";
 		int unigramCount, bigramCount;
 
-		double sentenceProb = 1, conditionalProb;
+		double sentenceProb = 1.0, conditionalProb;
 		StringTokenizer tempTokenize = new StringTokenizer(sentence);
 
 		if (tempTokenize.hasMoreTokens()) {
@@ -146,7 +135,7 @@ public class BigramClass {
 			bigramCount = (isBigramPresent) ? bigrams_Map.get(bigramToken) : 0;
 			unigramCount = (isUnigramPresent) ? unigrams_Map.get(tempToken1) : 0;
 
-			if (smoothingType == 0) {
+			if (smoothingType == "NO_SMOOTHING") {
 				if (isBigramPresent) {
 					conditionalProb = (double) (bigramCount)
 							/ (double) (unigramCount);
@@ -154,31 +143,15 @@ public class BigramClass {
 				}
 			}
 
-			else if (smoothingType == 1) {
+			else if (smoothingType == "ADD_ONE_SMOOTHING") {
 				conditionalProb = (double) (bigramCount + 1)
 						/ (double) (unigramCount + unigrams_Map.size());
 				sentenceProb *= conditionalProb;
-			} else if (smoothingType == 2) {
-				if (isBigramPresent) {
-					double c = 0, cStar, n = 0;
-					if (bigrams_Map.containsKey(bigramToken)) {
-						c = (double) bigrams_Map.get(bigramToken);
-						if (FreqCalculatorMap.containsKey((int) (c + 1))) {
-							n = FreqCalculatorMap.get((int) (c + 1));
-							cStar = ((c + 1) * (double) n)
-									/ (double) FreqCalculatorMap.get((int) c);
-							conditionalProb = cStar / (double) totalWords;
-							sentenceProb = sentenceProb * conditionalProb;
-						}
-					}
-				} else
-					sentenceProb *= (double) FreqCalculatorMap.get(1)
-							/ (double) totalWords;
-
-			}
+			} 
 			tempToken1 = tempToken2;
 		}
-		System.out.println("SP >> " + sentenceProb);
+		System.out.print("Sentence# " + whichSentence);
+		System.out.println(" >> " + sentenceProb);
 		return sentenceProb;
 	}
 	
