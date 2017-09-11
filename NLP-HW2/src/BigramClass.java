@@ -3,49 +3,38 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class BigramClass {
-	BufferedReader reader;
-	Map<String, Integer> bigramMap;
-	Map<String, Integer> unigramMap;
-	Map<Integer, Integer> numFreqMap;
-	String allLines = "";
-	String token1, token2;
-	int totalWords;
+	static BufferedReader reader;
+	static Map<String, Integer> bigrams_Map;
+	static Map<String, Integer> unigrams_Map;
+	static Map<Integer, Integer> FreqCalculatorMap;
+	static String allLines = "";
+	static String token1;
+	static String token2;
+	static int totalWords;
 
 	enum operation {
 		NO_SMOOTHING, ADD_ONE_SMOOTHING
 	};
 
 	public static void main(String[] args) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-		BigramClass obj = new BigramClass();
-		obj.Execute();
-	}
-
-	/*
-	 * EXECUTOR
-	 */
-	void Execute() {
-		IsFilePresent();
-		ReadFile();
-		numFreq();
-		calcSentence();
-
-	}
-
-	// Check file is present
-	void IsFilePresent() {
+		
 		try {
 			reader = new BufferedReader(new FileReader(
 					"corpus.txt"));
 		} catch (Exception e) {
 			System.out.println("File not found");
 		}
+
+		get_tokens();
+		FreqCalculator();
+		calcSentence();
 	}
 
-	void ReadFile() {
+	
+	static void get_tokens() {
 		try {
-			bigramMap = new HashMap<String, Integer>();
-			unigramMap = new HashMap<String, Integer>();
+			bigrams_Map = new HashMap<String, Integer>();
+			unigrams_Map = new HashMap<String, Integer>();
 			// join all lines
 			String singleLine = reader.readLine();
 
@@ -68,16 +57,16 @@ public class BigramClass {
 				String token2 = tokenizer.nextToken();
 				String word = token1 + " " + token2;
 
-				if (bigramMap.containsKey(word)) {
-					bigramMap.put(word, bigramMap.get(word) + 1);
+				if (bigrams_Map.containsKey(word)) {
+					bigrams_Map.put(word, bigrams_Map.get(word) + 1);
 				} else {
-					bigramMap.put(word, 1);
+					bigrams_Map.put(word, 1);
 				}
 				totalWords++;
-				if (unigramMap.containsKey(token1)) {
-					unigramMap.put(token1, unigramMap.get(token1) + 1);
+				if (unigrams_Map.containsKey(token1)) {
+					unigrams_Map.put(token1, unigrams_Map.get(token1) + 1);
 				} else {
-					unigramMap.put(token1, 1);
+					unigrams_Map.put(token1, 1);
 				}
 
 				token1 = token2;
@@ -91,7 +80,7 @@ public class BigramClass {
 		}
 	}
 
-	double doSmoothing(String sentence, int smoothingType) {
+	static double doSmoothing(String sentence, int smoothingType) {
 		String tempToken1 = "", tempToken2 = "";
 		int unigramCount, bigramCount;
 
@@ -106,11 +95,11 @@ public class BigramClass {
 			tempToken2 = tempTokenize.nextToken();
 			String bigramToken = tempToken1 + " " + tempToken2;
 
-			boolean isBigramPresent = bigramMap.containsKey(bigramToken);
-			boolean isUnigramPresent = unigramMap.containsKey(tempToken1);
+			boolean isBigramPresent = bigrams_Map.containsKey(bigramToken);
+			boolean isUnigramPresent = unigrams_Map.containsKey(tempToken1);
 
-			bigramCount = (isBigramPresent) ? bigramMap.get(bigramToken) : 0;
-			unigramCount = (isUnigramPresent) ? unigramMap.get(tempToken1) : 0;
+			bigramCount = (isBigramPresent) ? bigrams_Map.get(bigramToken) : 0;
+			unigramCount = (isUnigramPresent) ? unigrams_Map.get(tempToken1) : 0;
 
 			if (smoothingType == 0) {
 				if (isBigramPresent) {
@@ -122,23 +111,23 @@ public class BigramClass {
 
 			else if (smoothingType == 1) {
 				conditionalProb = (double) (bigramCount + 1)
-						/ (double) (unigramCount + unigramMap.size());
+						/ (double) (unigramCount + unigrams_Map.size());
 				sentenceProb *= conditionalProb;
 			} else if (smoothingType == 2) {
 				if (isBigramPresent) {
 					double c = 0, cStar, n = 0;
-					if (bigramMap.containsKey(bigramToken)) {
-						c = (double) bigramMap.get(bigramToken);
-						if (numFreqMap.containsKey((int) (c + 1))) {
-							n = numFreqMap.get((int) (c + 1));
+					if (bigrams_Map.containsKey(bigramToken)) {
+						c = (double) bigrams_Map.get(bigramToken);
+						if (FreqCalculatorMap.containsKey((int) (c + 1))) {
+							n = FreqCalculatorMap.get((int) (c + 1));
 							cStar = ((c + 1) * (double) n)
-									/ (double) numFreqMap.get((int) c);
+									/ (double) FreqCalculatorMap.get((int) c);
 							conditionalProb = cStar / (double) totalWords;
 							sentenceProb = sentenceProb * conditionalProb;
 						}
 					}
 				} else
-					sentenceProb *= (double) numFreqMap.get(1)
+					sentenceProb *= (double) FreqCalculatorMap.get(1)
 							/ (double) totalWords;
 
 			}
@@ -148,7 +137,7 @@ public class BigramClass {
 		return sentenceProb;
 	}
 
-	void compareSentence(String sentence1, String sentence2,
+	static void compareSentence(String sentence1, String sentence2,
 			BigramClass.operation operation) {
 		System.out.println(operation);
 		double comp1 = doSmoothing(sentence1, operation.ordinal());
@@ -159,7 +148,7 @@ public class BigramClass {
 		System.out.println(" ");
 	}
 
-	void calcSentence() {
+	static void calcSentence() {
 		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
 				.toLowerCase();
 		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the\n" + 
@@ -170,32 +159,35 @@ public class BigramClass {
 		compareSentence(sentence1, sentence2, operation.ADD_ONE_SMOOTHING);
 
 	
-		displayFreqNoSmoothing(sentence1);
-		displayFreqNoSmoothing(sentence2);
+		noSmoothingFreq(sentence1);
+		noSmoothingFreq(sentence2);
 		
-		displayProb(sentence1);
-		displayProb(sentence2);
+		probability(sentence1);
+		probability(sentence2);
 	
-		displayFreqAddOneSmoothing(sentence1);
-		displayFreqAddOneSmoothing(sentence2);		
+		addOneSmoothingFreq(sentence1);
+		addOneSmoothingFreq(sentence2);		
 
 	}
 
-	public void displayFreqNoSmoothing(String sentence) {
+	static void probability(String sentence) {
+		System.out.println("************************ Probability ***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tokenz = sentence.split(" ");
-		System.out.println("************************ Frequency No Smoothing***************************** ");
-		System.out.print(buildSpaceTab(" "));
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print("\t" + tokenz[cntr]);
+		String[] tempToken = sentence.split(" ");
+		System.out.print(addSpace(" "));
+		for (int cntr = 0; cntr < tempToken.length; cntr++) {
+			System.out.print("\t" + tempToken[cntr]);
 		}
 		System.out.println("\n");
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print(buildSpaceTab(tokenz[cntr]));
-			for (int cntr1 = 0; cntr1 < tokenz.length; cntr1++) {
-				String bigram = tokenz[cntr] + " " + tokenz[cntr1];
-				if (bigramMap.containsKey(bigram)) {
-					System.out.print("\t" + dF.format(bigramMap.get(bigram)));
+		for (int cntr = 0; cntr < tempToken.length; cntr++) {
+			System.out.print(addSpace(tempToken[cntr]));
+			for (int cntr1 = 0; cntr1 < tempToken.length; cntr1++) {
+				String bigram = tempToken[cntr] + " " + tempToken[cntr1];
+				if (bigrams_Map.containsKey(bigram)) {
+					System.out
+							.print("\t"
+									+ dF.format(((double) bigrams_Map.get(bigram) / (double) unigrams_Map
+											.get(tempToken[cntr1]))));
 				} else {
 					System.out.print("\t0");
 				}
@@ -203,26 +195,51 @@ public class BigramClass {
 			System.out.println("\n");
 		}
 	}
-
-	public void displayFreqAddOneSmoothing(String sentence) {
+	
+	
+	public static void noSmoothingFreq(String sentence) {
+		DecimalFormat dF = new DecimalFormat("#.###");
+		String[] tokenz = sentence.split(" ");
+		System.out.println("************************ Frequency No Smoothing***************************** ");
+		System.out.print(addSpace(" "));
+		for (int cntr = 0; cntr < tokenz.length; cntr++) {
+			System.out.print("\t" + tokenz[cntr]);
+		}
+		System.out.println("\n");
+		for (int cntr = 0; cntr < tokenz.length; cntr++) {
+			System.out.print(addSpace(tokenz[cntr]));
+			for (int cntr1 = 0; cntr1 < tokenz.length; cntr1++) {
+				String bigram = tokenz[cntr] + " " + tokenz[cntr1];
+				if (bigrams_Map.containsKey(bigram)) {
+					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)));
+				} else {
+					System.out.print("\t0");
+				}
+			}
+			System.out.println("\n");
+		}
+	}
+	
+	
+	public static void addOneSmoothingFreq(String sentence) {
 		System.out.println("************************ Frequency Add One Smoothing***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tokens = sentence.split(" ");
-		System.out.print(buildSpaceTab(" "));
+		System.out.print(addSpace(" "));
 		for (int cntr = 0; cntr < tokens.length; cntr++) {
 			System.out.print("\t" + tokens[cntr]);
 		}
 		System.out.println("\n");
 		for (int cntr = 0; cntr < tokens.length; cntr++) {
-			System.out.print(buildSpaceTab(tokens[cntr]));
+			System.out.print(addSpace(tokens[cntr]));
 			for (int cntr1 = 0; cntr1 < tokens.length; cntr1++) {
 				String bigram = tokens[cntr] + " " + tokens[cntr1];
-				if (bigramMap.containsKey(bigram)) {
+				if (bigrams_Map.containsKey(bigram)) {
 					System.out
 							.print("\t"
-									+ dF.format(((double) (bigramMap
-											.get(bigram) + 1) / ((double) unigramMap
-											.get(tokens[cntr1]) + unigramMap
+									+ dF.format(((double) (bigrams_Map
+											.get(bigram) + 1) / ((double) unigrams_Map
+											.get(tokens[cntr1]) + unigrams_Map
 											.size()))));
 
 				} else {
@@ -235,33 +252,7 @@ public class BigramClass {
 
 	
 
-	void displayProb(String sentence) {
-		System.out.println("************************ Probability ***************************** ");
-		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tempToken = sentence.split(" ");
-		System.out.print(buildSpaceTab(" "));
-		for (int cntr = 0; cntr < tempToken.length; cntr++) {
-			System.out.print("\t" + tempToken[cntr]);
-		}
-		System.out.println("\n");
-		for (int cntr = 0; cntr < tempToken.length; cntr++) {
-			System.out.print(buildSpaceTab(tempToken[cntr]));
-			for (int cntr1 = 0; cntr1 < tempToken.length; cntr1++) {
-				String bigram = tempToken[cntr] + " " + tempToken[cntr1];
-				if (bigramMap.containsKey(bigram)) {
-					System.out
-							.print("\t"
-									+ dF.format(((double) bigramMap.get(bigram) / (double) unigramMap
-											.get(tempToken[cntr1]))));
-				} else {
-					System.out.print("\t0");
-				}
-			}
-			System.out.println("\n");
-		}
-	}
-
-	public static String buildSpaceTab(String s) {
+	public static String addSpace(String s) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(s);
 		for (int i = 1; i < 10 - s.length(); i++) {
@@ -270,15 +261,15 @@ public class BigramClass {
 		return sb.toString();
 	}
 
-	void numFreq() {
-		numFreqMap = new HashMap<Integer, Integer>();
-		for (String key : bigramMap.keySet()) {
-			int val = bigramMap.get(key);
-			if (numFreqMap.containsKey(val)) {
-				int count = numFreqMap.get(val);
-				numFreqMap.put(val, count + 1);
+	static void FreqCalculator() {
+		FreqCalculatorMap = new HashMap<Integer, Integer>();
+		for (String key : bigrams_Map.keySet()) {
+			int val = bigrams_Map.get(key);
+			if (FreqCalculatorMap.containsKey(val)) {
+				int count = FreqCalculatorMap.get(val);
+				FreqCalculatorMap.put(val, count + 1);
 			} else {
-				numFreqMap.put(val, 1);
+				FreqCalculatorMap.put(val, 1);
 			}
 		}
 	}
