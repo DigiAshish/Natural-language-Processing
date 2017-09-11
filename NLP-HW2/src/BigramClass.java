@@ -35,7 +35,6 @@ public class BigramClass {
 		try {
 			bigrams_Map = new HashMap<String, Integer>();
 			unigrams_Map = new HashMap<String, Integer>();
-			// join all lines
 			String singleLine = reader.readLine();
 
 			while (singleLine != null) {
@@ -46,9 +45,7 @@ public class BigramClass {
 			allLines = allLines.replaceAll("\\s+", " ").toLowerCase();
 
 			StringTokenizer tokenizer = new StringTokenizer(allLines);
-			// System.out.println(tokenizer.countTokens());
 
-			// loop through the words.
 			if (tokenizer.hasMoreTokens()) {
 				token1 = tokenizer.nextToken();
 			}
@@ -68,7 +65,6 @@ public class BigramClass {
 				} else {
 					unigrams_Map.put(token1, 1);
 				}
-
 				token1 = token2;
 			}
 
@@ -79,7 +75,56 @@ public class BigramClass {
 			System.out.println("Error parsing file");
 		}
 	}
+	
+	
+	static void FreqCalculator() {
+		FreqCalculatorMap = new HashMap<Integer, Integer>();
+		for (String key : bigrams_Map.keySet()) {
+			int val = bigrams_Map.get(key);
+			if (FreqCalculatorMap.containsKey(val)) {
+				int count = FreqCalculatorMap.get(val);
+				FreqCalculatorMap.put(val, count + 1);
+			} else {
+				FreqCalculatorMap.put(val, 1);
+			}
+		}
+	}
+	
+	
+	static void calcSentence() {
+		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
+				.toLowerCase();
+		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the\n" + 
+				"company ."
+				.toLowerCase();
 
+		compareSentence(sentence1, sentence2, operation.NO_SMOOTHING);
+		compareSentence(sentence1, sentence2, operation.ADD_ONE_SMOOTHING);
+
+	
+		noSmoothingFreq(sentence1);
+		noSmoothingFreq(sentence2);
+		
+		probability(sentence1);
+		probability(sentence2);
+	
+		addOneSmoothingFreq(sentence1);
+		addOneSmoothingFreq(sentence2);		
+
+	}
+	
+	static void compareSentence(String sentence1, String sentence2,
+			BigramClass.operation operation) {
+		System.out.println(operation);
+		double comp1 = doSmoothing(sentence1, operation.ordinal());
+		double comp2 = doSmoothing(sentence2, operation.ordinal());
+		String output = comp1 > comp2 ? "Sentence 1 is preferred"
+				: "Sentence 2 is preferred";
+		System.out.println(output);
+		System.out.println(" ");
+	}
+	
+	
 	static double doSmoothing(String sentence, int smoothingType) {
 		String tempToken1 = "", tempToken2 = "";
 		int unigramCount, bigramCount;
@@ -136,38 +181,29 @@ public class BigramClass {
 		System.out.println("SP >> " + sentenceProb);
 		return sentenceProb;
 	}
-
-	static void compareSentence(String sentence1, String sentence2,
-			BigramClass.operation operation) {
-		System.out.println(operation);
-		double comp1 = doSmoothing(sentence1, operation.ordinal());
-		double comp2 = doSmoothing(sentence2, operation.ordinal());
-		String output = comp1 > comp2 ? "Sentence 1 is preferred"
-				: "Sentence 2 is preferred";
-		System.out.println(output);
-		System.out.println(" ");
-	}
-
-	static void calcSentence() {
-		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
-				.toLowerCase();
-		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the\n" + 
-				"company ."
-				.toLowerCase();
-
-		compareSentence(sentence1, sentence2, operation.NO_SMOOTHING);
-		compareSentence(sentence1, sentence2, operation.ADD_ONE_SMOOTHING);
-
 	
-		noSmoothingFreq(sentence1);
-		noSmoothingFreq(sentence2);
-		
-		probability(sentence1);
-		probability(sentence2);
 	
-		addOneSmoothingFreq(sentence1);
-		addOneSmoothingFreq(sentence2);		
-
+	public static void noSmoothingFreq(String sentence) {
+		DecimalFormat dF = new DecimalFormat("#.###");
+		String[] tokenz = sentence.split(" ");
+		System.out.println("************************ Frequency No Smoothing***************************** ");
+		System.out.print(addSpace(" "));
+		for (int cntr = 0; cntr < tokenz.length; cntr++) {
+			System.out.print("\t" + tokenz[cntr]);
+		}
+		System.out.println("\n");
+		for (int cntr = 0; cntr < tokenz.length; cntr++) {
+			System.out.print(addSpace(tokenz[cntr]));
+			for (int cntr1 = 0; cntr1 < tokenz.length; cntr1++) {
+				String bigram = tokenz[cntr] + " " + tokenz[cntr1];
+				if (bigrams_Map.containsKey(bigram)) {
+					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)));
+				} else {
+					System.out.print("\t0");
+				}
+			}
+			System.out.println("\n");
+		}
 	}
 
 	static void probability(String sentence) {
@@ -188,30 +224,6 @@ public class BigramClass {
 							.print("\t"
 									+ dF.format(((double) bigrams_Map.get(bigram) / (double) unigrams_Map
 											.get(tempToken[cntr1]))));
-				} else {
-					System.out.print("\t0");
-				}
-			}
-			System.out.println("\n");
-		}
-	}
-	
-	
-	public static void noSmoothingFreq(String sentence) {
-		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tokenz = sentence.split(" ");
-		System.out.println("************************ Frequency No Smoothing***************************** ");
-		System.out.print(addSpace(" "));
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print("\t" + tokenz[cntr]);
-		}
-		System.out.println("\n");
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print(addSpace(tokenz[cntr]));
-			for (int cntr1 = 0; cntr1 < tokenz.length; cntr1++) {
-				String bigram = tokenz[cntr] + " " + tokenz[cntr1];
-				if (bigrams_Map.containsKey(bigram)) {
-					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)));
 				} else {
 					System.out.print("\t0");
 				}
@@ -250,7 +262,6 @@ public class BigramClass {
 		}
 	}
 
-	
 
 	public static String addSpace(String s) {
 		StringBuilder sb = new StringBuilder();
@@ -261,17 +272,5 @@ public class BigramClass {
 		return sb.toString();
 	}
 
-	static void FreqCalculator() {
-		FreqCalculatorMap = new HashMap<Integer, Integer>();
-		for (String key : bigrams_Map.keySet()) {
-			int val = bigrams_Map.get(key);
-			if (FreqCalculatorMap.containsKey(val)) {
-				int count = FreqCalculatorMap.get(val);
-				FreqCalculatorMap.put(val, count + 1);
-			} else {
-				FreqCalculatorMap.put(val, 1);
-			}
-		}
-	}
 
 }
