@@ -14,7 +14,12 @@ public class BigramClass {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		try {
-			reader = new BufferedReader(new FileReader("corpus.txt"));
+			String fileName = "corpus.txt";
+			if(args.length > 0 )
+			{
+				fileName = args[0].toString();	
+			}
+			reader = new BufferedReader(new FileReader(fileName));
 			String singleLine = reader.readLine();
 
 			while (singleLine != null) {
@@ -28,9 +33,19 @@ public class BigramClass {
 		} catch (Exception e) {
 			System.out.println("File not found or Error parsing the file");
 		}
-
+		
+		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
+				.toLowerCase();
+		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the company ."
+				.toLowerCase();	
+		if(args.length > 0 )
+		{
+			sentence1 = args[1].toString().toLowerCase();
+			sentence2 = args[2].toString().toLowerCase();
+		}
+		
 		FreqCalculator();
-		calcSentence();
+		calcSentence(sentence1,sentence2);
 	}
 
 	
@@ -82,12 +97,7 @@ public class BigramClass {
 	}
 	
 	
-	static void calcSentence() {
-		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
-				.toLowerCase();
-		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the\n" + 
-				"company ."
-				.toLowerCase();
+	static void calcSentence(String sentence1,String sentence2) {
 
 		compareSentence(sentence1, sentence2, "NO_SMOOTHING");
 		compareSentence(sentence1, sentence2, "ADD_ONE_SMOOTHING");
@@ -95,11 +105,14 @@ public class BigramClass {
 		noSmoothingFreq(sentence1);
 		noSmoothingFreq(sentence2);
 		
-		probability(sentence1);
-		probability(sentence2);
-	
+		noSmoothingprobability(sentence1);
+		noSmoothingprobability(sentence2);
+		
 		addOneSmoothingFreq(sentence1);
-		addOneSmoothingFreq(sentence2);		
+		addOneSmoothingFreq(sentence2);
+	
+		addOneSmoothingProb(sentence1);
+		addOneSmoothingProb(sentence2);		
 
 	}
 	
@@ -179,8 +192,32 @@ public class BigramClass {
 		}
 	}
 
-	static void probability(String sentence) {
-		System.out.println("************************ Probability ***************************** ");
+	public static void addOneSmoothingFreq(String sentence) {
+		System.out.println("************************ Frequency Add One Smoothing***************************** ");
+		DecimalFormat dF = new DecimalFormat("#.###");
+		String[] tokens = sentence.split(" ");
+		System.out.print(addSpace(" "));
+		for (int cntr = 0; cntr < tokens.length; cntr++) {
+			System.out.print("\t" + tokens[cntr]);
+		}
+		System.out.println("\n");
+		for (int cntr = 0; cntr < tokens.length; cntr++) {
+			System.out.print(addSpace(tokens[cntr]));
+			for (int cntr1 = 0; cntr1 < tokens.length; cntr1++) {
+				String bigram = tokens[cntr] + " " + tokens[cntr1];
+				if (bigrams_Map.containsKey(bigram)) {
+					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)+1));
+
+				} else {
+					System.out.print("\t0");
+				}
+			}
+			System.out.println("\n");
+		}
+	}
+	
+	static void noSmoothingprobability(String sentence) {
+		System.out.println("************************ Probability for No Smoothing ***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tempToken = sentence.split(" ");
 		System.out.print(addSpace(" "));
@@ -206,8 +243,8 @@ public class BigramClass {
 	}
 	
 	
-	public static void addOneSmoothingFreq(String sentence) {
-		System.out.println("************************ Frequency Add One Smoothing***************************** ");
+	public static void addOneSmoothingProb(String sentence) {
+		System.out.println("************************ Probability for Add One Smoothing***************************** ");
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tokens = sentence.split(" ");
 		System.out.print(addSpace(" "));
