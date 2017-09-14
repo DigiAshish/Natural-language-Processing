@@ -34,9 +34,9 @@ public class BigramClass {
 			System.out.println("File not found or Error parsing the file");
 		}
 		
-		String sentence1 = ". Paul Allen and Bill Gates are the founders of Microsoft software company ."
+		String sentence1 = "Paul Allen and Bill Gates are the founders of Microsoft software company"
 				.toLowerCase();
-		String sentence2 = ". Windows Phone Microsoft Office and Microsoft Surface are the products of the company ."
+		String sentence2 = "Windows Phone Microsoft Office and Microsoft Surface are the products of the company"
 				.toLowerCase();	
 		if(args.length > 0 )
 		{
