@@ -6,11 +6,10 @@ public class BigramClass {
 	static BufferedReader reader;
 	static Map<String, Integer> bigrams_Map;
 	static Map<String, Integer> unigrams_Map;
-	static Map<Integer, Integer> FreqCalculatorMap;
-	static String allLines = "";
-	static String token1;
-	static String token2;
-	static int totalWords;
+	static Map<Integer, Integer> FreqCalcMap;
+	static String lines = "";static int totalWords;
+	static String word1;static String word2;
+	
 
 	public static void main(String[] args) throws FileNotFoundException {
 		try {
@@ -23,12 +22,12 @@ public class BigramClass {
 			String singleLine = reader.readLine();
 
 			while (singleLine != null) {
-				allLines = allLines + " " + singleLine;
+				lines = lines + " " + singleLine;
 				singleLine = reader.readLine();
 			}
-			allLines = allLines.replaceAll("[^a-zA-Z0-9. ]", "");
-			allLines = allLines.replaceAll("\\s+", " ").toLowerCase();
-			tokenize(allLines);
+			lines = lines.replaceAll("[^a-zA-Z0-9. ]", "");
+			lines = lines.replaceAll("\\s+", " ").toLowerCase();
+			tokenize(lines);
 			
 		} catch (Exception e) {
 			System.out.println("File not found or Error parsing the file");
@@ -44,22 +43,22 @@ public class BigramClass {
 			sentence2 = args[2].toString().toLowerCase();
 		}
 		
-		FreqCalculator();
-		calcSentence(sentence1,sentence2);
+		FreqCalc();
+		ProcessSentences(sentence1,sentence2);
 	}
 
 	
-	static void tokenize(String allLines) {
+	static void tokenize(String lines) {
 		try {
 			bigrams_Map = new HashMap<String, Integer>();
 			unigrams_Map = new HashMap<String, Integer>();
 			
-			StringTokenizer tokenizer = new StringTokenizer(allLines);
-			token1 = tokenizer.nextToken();
+			StringTokenizer tokenizer = new StringTokenizer(lines);
+			word1 = tokenizer.nextToken();
 
 			while (tokenizer.hasMoreTokens()) {
-				String token2 = tokenizer.nextToken();
-				String word = token1 + " " + token2;
+				String word2 = tokenizer.nextToken();
+				String word = word1 + " " + word2;
 
 				if (bigrams_Map.containsKey(word)) {
 					bigrams_Map.put(word, bigrams_Map.get(word) + 1);
@@ -67,12 +66,12 @@ public class BigramClass {
 					bigrams_Map.put(word, 1);
 				}
 				totalWords++;
-				if (unigrams_Map.containsKey(token1)) {
-					unigrams_Map.put(token1, unigrams_Map.get(token1) + 1);
+				if (unigrams_Map.containsKey(word1)) {
+					unigrams_Map.put(word1, unigrams_Map.get(word1) + 1);
 				} else {
-					unigrams_Map.put(token1, 1);
+					unigrams_Map.put(word1, 1);
 				}
-				token1 = token2;
+				word1 = word2;
 			}
 
 		} catch (Exception e) {
@@ -83,36 +82,36 @@ public class BigramClass {
 	}
 	
 	
-	static void FreqCalculator() {
-		FreqCalculatorMap = new HashMap<Integer, Integer>();
+	static void FreqCalc() {
+		FreqCalcMap = new HashMap<Integer, Integer>();
 		for (String key : bigrams_Map.keySet()) {
 			int val = bigrams_Map.get(key);
-			if (FreqCalculatorMap.containsKey(val)) {
-				int count = FreqCalculatorMap.get(val);
-				FreqCalculatorMap.put(val, count + 1);
+			if (FreqCalcMap.containsKey(val)) {
+				int count = FreqCalcMap.get(val);
+				FreqCalcMap.put(val, count + 1);
 			} else {
-				FreqCalculatorMap.put(val, 1);
+				FreqCalcMap.put(val, 1);
 			}
 		}
 	}
 	
 	
-	static void calcSentence(String sentence1,String sentence2) {
+	static void ProcessSentences(String sentence1,String sentence2) {
 
 		compareSentence(sentence1, sentence2, "NO_SMOOTHING");
 		compareSentence(sentence1, sentence2, "ADD_ONE_SMOOTHING");
 
-		noSmoothingFreq(sentence1);
-		noSmoothingFreq(sentence2);
+		noSmoothingFreq(sentence1, "Sentence-1");
+		noSmoothingFreq(sentence2, "Sentence-2");
 		
-		noSmoothingprobability(sentence1);
-		noSmoothingprobability(sentence2);
+		noSmoothingprobability(sentence1, "Sentence-1");
+		noSmoothingprobability(sentence2, "Sentence-2");
 		
-		addOneSmoothingFreq(sentence1);
-		addOneSmoothingFreq(sentence2);
+		addOneSmoothingFreq(sentence1, "Sentence-1");
+		addOneSmoothingFreq(sentence2, "Sentence-2");
 	
-		addOneSmoothingProb(sentence1);
-		addOneSmoothingProb(sentence2);		
+		addOneSmoothingProb(sentence1, "Sentence-1");
+		addOneSmoothingProb(sentence2, "Sentence-2");		
 
 	}
 	
@@ -128,25 +127,25 @@ public class BigramClass {
 	
 	
 	static double doSmoothing(String sentence, int whichSentence, String smoothingType) {
-		String tempToken1 = "", tempToken2 = "";
+		String tempword1 = "", tempword2 = "";
 		int unigramCount, bigramCount;
 
 		double sentenceProb = 1.0, conditionalProb;
 		StringTokenizer tempTokenize = new StringTokenizer(sentence);
 
 		if (tempTokenize.hasMoreTokens()) {
-			tempToken1 = tempTokenize.nextToken();
+			tempword1 = tempTokenize.nextToken();
 		}
 
 		while (tempTokenize.hasMoreTokens()) {
-			tempToken2 = tempTokenize.nextToken();
-			String bigramToken = tempToken1 + " " + tempToken2;
+			tempword2 = tempTokenize.nextToken();
+			String bigramToken = tempword1 + " " + tempword2;
 
 			boolean isBigramPresent = bigrams_Map.containsKey(bigramToken);
-			boolean isUnigramPresent = unigrams_Map.containsKey(tempToken1);
+			boolean isUnigramPresent = unigrams_Map.containsKey(tempword1);
 
 			bigramCount = (isBigramPresent) ? bigrams_Map.get(bigramToken) : 0;
-			unigramCount = (isUnigramPresent) ? unigrams_Map.get(tempToken1) : 0;
+			unigramCount = (isUnigramPresent) ? unigrams_Map.get(tempword1) : 0;
 
 			if (smoothingType == "NO_SMOOTHING") {
 				if (isBigramPresent) {
@@ -161,7 +160,7 @@ public class BigramClass {
 						/ (double) (unigramCount + unigrams_Map.size());
 				sentenceProb *= conditionalProb;
 			} 
-			tempToken1 = tempToken2;
+			tempword1 = tempword2;
 		}
 		System.out.print("Sentence# " + whichSentence);
 		System.out.println(" >> " + sentenceProb);
@@ -169,19 +168,20 @@ public class BigramClass {
 	}
 	
 	
-	public static void noSmoothingFreq(String sentence) {
+	public static void noSmoothingFreq(String sentence, String whichSentence) {
 		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tokenz = sentence.split(" ");
-		System.out.println("************************ Frequency No Smoothing***************************** ");
+		String[] tempToken = sentence.split(" ");
+		System.out.format("********************  %s -> No Smoothing Frequency***************************** ",whichSentence);
+		System.out.println();
 		System.out.print(addSpace(" "));
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print("\t" + tokenz[cntr]);
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print("\t" + tempToken[iCounter]);
 		}
 		System.out.println("\n");
-		for (int cntr = 0; cntr < tokenz.length; cntr++) {
-			System.out.print(addSpace(tokenz[cntr]));
-			for (int cntr1 = 0; cntr1 < tokenz.length; cntr1++) {
-				String bigram = tokenz[cntr] + " " + tokenz[cntr1];
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print(addSpace(tempToken[iCounter]));
+			for (int jCounter = 0; jCounter < tempToken.length; jCounter++) {
+				String bigram = tempToken[iCounter] + " " + tempToken[jCounter];
 				if (bigrams_Map.containsKey(bigram)) {
 					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)));
 				} else {
@@ -192,19 +192,21 @@ public class BigramClass {
 		}
 	}
 
-	public static void addOneSmoothingFreq(String sentence) {
-		System.out.println("************************ Frequency Add One Smoothing***************************** ");
+	public static void addOneSmoothingFreq(String sentence, String whichSentence) {
+		
+		System.out.format("********************  %s -> Add One Smoothing Frequency***************************** ",whichSentence);
+		System.out.println();
 		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tokens = sentence.split(" ");
+		String[] tempToken = sentence.split(" ");
 		System.out.print(addSpace(" "));
-		for (int cntr = 0; cntr < tokens.length; cntr++) {
-			System.out.print("\t" + tokens[cntr]);
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print("\t" + tempToken[iCounter]);
 		}
 		System.out.println("\n");
-		for (int cntr = 0; cntr < tokens.length; cntr++) {
-			System.out.print(addSpace(tokens[cntr]));
-			for (int cntr1 = 0; cntr1 < tokens.length; cntr1++) {
-				String bigram = tokens[cntr] + " " + tokens[cntr1];
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print(addSpace(tempToken[iCounter]));
+			for (int jCounter = 0; jCounter < tempToken.length; jCounter++) {
+				String bigram = tempToken[iCounter] + " " + tempToken[jCounter];
 				if (bigrams_Map.containsKey(bigram)) {
 					System.out.print("\t" + dF.format(bigrams_Map.get(bigram)+1));
 
@@ -216,24 +218,25 @@ public class BigramClass {
 		}
 	}
 	
-	static void noSmoothingprobability(String sentence) {
-		System.out.println("************************ Probability for No Smoothing ***************************** ");
+	static void noSmoothingprobability(String sentence, String whichSentence) {
+		System.out.format("********************  %s -> No Smoothing Probability ***************************** ",whichSentence);
+		System.out.println();
 		DecimalFormat dF = new DecimalFormat("#.###");
 		String[] tempToken = sentence.split(" ");
 		System.out.print(addSpace(" "));
-		for (int cntr = 0; cntr < tempToken.length; cntr++) {
-			System.out.print("\t" + tempToken[cntr]);
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print("\t" + tempToken[iCounter]);
 		}
 		System.out.println("\n");
-		for (int cntr = 0; cntr < tempToken.length; cntr++) {
-			System.out.print(addSpace(tempToken[cntr]));
-			for (int cntr1 = 0; cntr1 < tempToken.length; cntr1++) {
-				String bigram = tempToken[cntr] + " " + tempToken[cntr1];
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print(addSpace(tempToken[iCounter]));
+			for (int jCounter = 0; jCounter < tempToken.length; jCounter++) {
+				String bigram = tempToken[iCounter] + " " + tempToken[jCounter];
 				if (bigrams_Map.containsKey(bigram)) {
 					System.out
 							.print("\t"
 									+ dF.format(((double) bigrams_Map.get(bigram) / (double) unigrams_Map
-											.get(tempToken[cntr1]))));
+											.get(tempToken[jCounter]))));
 				} else {
 					System.out.print("\t0");
 				}
@@ -243,25 +246,26 @@ public class BigramClass {
 	}
 	
 	
-	public static void addOneSmoothingProb(String sentence) {
-		System.out.println("************************ Probability for Add One Smoothing***************************** ");
+	public static void addOneSmoothingProb(String sentence, String whichSentence) {
+		System.out.format("********************  %s -> Add One Smoothing Probability ***************************** ",whichSentence);
+		System.out.println();
 		DecimalFormat dF = new DecimalFormat("#.###");
-		String[] tokens = sentence.split(" ");
+		String[] tempToken = sentence.split(" ");
 		System.out.print(addSpace(" "));
-		for (int cntr = 0; cntr < tokens.length; cntr++) {
-			System.out.print("\t" + tokens[cntr]);
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print("\t" + tempToken[iCounter]);
 		}
 		System.out.println("\n");
-		for (int cntr = 0; cntr < tokens.length; cntr++) {
-			System.out.print(addSpace(tokens[cntr]));
-			for (int cntr1 = 0; cntr1 < tokens.length; cntr1++) {
-				String bigram = tokens[cntr] + " " + tokens[cntr1];
+		for (int iCounter = 0; iCounter < tempToken.length; iCounter++) {
+			System.out.print(addSpace(tempToken[iCounter]));
+			for (int jCounter = 0; jCounter < tempToken.length; jCounter++) {
+				String bigram = tempToken[iCounter] + " " + tempToken[jCounter];
 				if (bigrams_Map.containsKey(bigram)) {
 					System.out
 							.print("\t"
 									+ dF.format(((double) (bigrams_Map
 											.get(bigram) + 1) / ((double) unigrams_Map
-											.get(tokens[cntr1]) + unigrams_Map
+											.get(tempToken[jCounter]) + unigrams_Map
 											.size()))));
 
 				} else {
